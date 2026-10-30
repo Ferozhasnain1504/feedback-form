@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIPS32 Demo Feedback</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1720; --card:#16212d; --line:#26364a; --ink:#eef3f8; --mute:#93a4b8;
+    --accent:#34d399; --accent2:#fbbf24; --warm:#fb7185;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f5f1ea; --card:#fffdf9; --line:#e5ddd0; --ink:#1c2530; --mute:#6b7785; --accent:#0f9d78; --accent2:#c98a05; --warm:#e0455f; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;line-height:1.55;
+    background-image:radial-gradient(circle at 12% -10%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 45%),
+                     radial-gradient(circle at 95% 5%,color-mix(in srgb,var(--accent2) 14%,transparent),transparent 40%);}
+  .wrap{max-width:680px;margin:0 auto;padding:40px 16px 70px}
+  .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.04em;color:var(--accent);
+    border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);padding:4px 10px;border-radius:99px}
+  h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(32px,7vw,48px);line-height:1.08;margin:16px 0 10px;letter-spacing:-.02em}
+  h1 em{font-style:normal;color:var(--accent)}
+  .lead{color:var(--mute);font-size:17px;margin:0 0 26px;max-width:540px}
+
+  .pipe{display:flex;gap:6px;margin:0 0 28px}
+  .stage{flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 0;border-radius:8px;
+    background:var(--card);border:1px solid var(--line);color:var(--mute);animation:pulse 5s infinite}
+  .stage:nth-child(2){animation-delay:1s}.stage:nth-child(3){animation-delay:2s}
+  .stage:nth-child(4){animation-delay:3s}.stage:nth-child(5){animation-delay:4s}
+  @keyframes pulse{0%,16%{background:color-mix(in srgb,var(--accent) 22%,var(--card));color:var(--ink);border-color:var(--accent)}
+    24%,100%{background:var(--card);color:var(--mute);border-color:var(--line)}}
+
+  form{display:grid;gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
+  label.q,.q{display:block;font-weight:700;margin-bottom:4px}
+  .hint{color:var(--mute);font-size:14px;margin:0 0 12px}
+  input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;outline:none;transition:border-color .15s, box-shadow .15s}
+  input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+  textarea{min-height:96px;resize:vertical}
+
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:99px;padding:8px 16px;cursor:pointer;transition:all .15s}
+  .pill:hover{border-color:var(--accent)}
+  .pill.on{background:var(--accent);border-color:var(--accent);color:#06281d;font-weight:700}
+
+  .rate{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px dashed var(--line)}
+  .rate:first-of-type{border-top:0}
+  .rate span.t{font-size:15px}
+  .stars{display:flex;gap:2px;flex-shrink:0}
+  .star{background:none;border:0;cursor:pointer;font-size:28px;line-height:1;color:var(--line);padding:2px;transition:transform .12s,color .12s}
+  .star:hover{transform:scale(1.2)}
+  .star.on{color:var(--accent2)}
+
+  .vibes{display:flex;gap:10px;flex-wrap:wrap}
+  .vibe{font-size:30px;background:transparent;border:2px solid transparent;border-radius:14px;padding:6px 10px;cursor:pointer;filter:grayscale(.8);opacity:.7;transition:all .15s}
+  .vibe:hover{transform:translateY(-3px);filter:none;opacity:1}
+  .vibe.on{border-color:var(--accent);filter:none;opacity:1;background:color-mix(in srgb,var(--accent) 14%,transparent)}
+
+  .go{font:inherit;font-weight:700;font-size:17px;color:#06281d;background:var(--accent);border:0;border-radius:14px;padding:16px;cursor:pointer;transition:transform .12s, filter .12s}
+  .go:hover{transform:translateY(-2px);filter:brightness(1.07)}
+  .go:disabled{opacity:.6;cursor:wait}
+  .err{color:var(--warm);font-size:14px;min-height:20px;margin:-6px 0 0}
+  .thanks{display:none;text-align:center;padding:50px 24px}
+  .thanks h2{font-family:'Fraunces',serif;font-size:34px;margin:10px 0}
+  .thanks p{color:var(--mute);max-width:420px;margin:0 auto}
+  .big{font-size:56px}
+  footer{margin-top:30px;text-align:center;color:var(--mute);font-size:13px}
+  .hp{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="chip">32-bit MIPS · 5-stage pipeline · Verilog</span>
+  <h1>So... how did the <em>pipeline</em> hold up?</h1>
+  <p class="lead">Thanks for sitting through my MIPS32 demo. Honest feedback helps me more than polite feedback, so tell me what worked and what didn't. Takes about a minute.</p>
+
+  <div class="pipe" aria-hidden="true">
+    <div class="stage">IF</div><div class="stage">ID</div><div class="stage">EX</div><div class="stage">MEM</div><div class="stage">WB</div>
+  </div>
+
+  <form id="f" novalidate>
+    <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off">
+
+    <div class="card">
+      <label class="q" for="name">Your name <span style="color:var(--mute);font-weight:400">(optional)</span></label>
+      <p class="hint">Leave it blank if you'd like to stay anonymous.</p>
+      <input id="name" name="name" type="text" maxlength="60" placeholder="e.g. Ananya">
+      <div style="height:16px"></div>
+      <div class="q">You are a...</div>
+      <div class="pills" data-field="role">
+        <button type="button" class="pill">Faculty</button>
+        <button type="button" class="pill">Student</button>
+        <button type="button" class="pill">Industry / Guest</button>
+        <button type="button" class="pill">Evaluator</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q">Rate it</div>
+      <p class="hint">Tap the stars. 5 is great, 1 is needs work.</p>
+      <div class="rate"><span class="t">How clear was my explanation?</span><div class="stars" data-field="clarity"></div></div>
+      <div class="rate"><span class="t">Technical depth (hazards, forwarding, stalls)</span><div class="stars" data-field="depth"></div></div>
+      <div class="rate"><span class="t">The Vivado simulation and FPGA demo</span><div class="stars" data-field="demo"></div></div>
+      <div class="rate"><span class="t">Overall impression</span><div class="stars" data-field="overall"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="q">How are you feeling after the talk?</div>
+      <p class="hint">Pick the one that fits.</p>
+      <div class="vibes" data-field="vibe">
+        <button type="button" class="vibe" data-v="Lost">😵</button>
+        <button type="button" class="vibe" data-v="Meh">😐</button>
+        <button type="button" class="vibe" data-v="Got it">🙂</button>
+        <button type="button" class="vibe" data-v="Impressed">🤩</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <label class="q" for="liked">What stood out to you?</label>
+      <p class="hint">Something that clicked, looked good, or made sense for the first time.</p>
+      <textarea id="liked" name="liked" maxlength="800"></textarea>
+      <div style="height:16px"></div>
+      <label class="q" for="improve">What could I do better?</label>
+      <p class="hint">Be blunt. Slides, pacing, depth, anything.</p>
+      <textarea id="improve" name="improve" maxlength="800"></textarea>
+      <div style="height:16px"></div>
+      <label class="q" for="question">Any question you didn't get to ask?</label>
+      <textarea id="question" name="question" maxlength="800"></textarea>
+    </div>
+
+    <p class="err" id="err"></p>
+    <button class="go" id="go" type="submit">Send my feedback</button>
+  </form>
+
+  <div class="card thanks" id="thanks">
+    <div class="big">🙌</div>
+    <h2>Thank you, truly.</h2>
+    <p>Your feedback is in. I'll read every response and use it to make the next version of this project better.</p>
+  </div>
+
+  <footer>Built by Feroz Hasnain · ECE, JSSATE Bangalore</footer>
+</div>
+
+<script>
+/* ---- SETUP: paste your Google Apps Script Web App URL here ---- */
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbyudTRWxsFyeYXXSKiPMOaCPfVxYsxHEjPfHsFjZHiALdTQ0Q9ogTEYVWqo0jazco8/exec";
+
+const state = {};
+const $ = (s,r=document)=>r.querySelector(s);
+
+// star ratings
+document.querySelectorAll('.stars').forEach(box=>{
+  const field = box.dataset.field;
+  for(let i=1;i<=5;i++){
+    const b = document.createElement('button');
+    b.type='button'; b.className='star'; b.textContent='★'; b.setAttribute('aria-label', i+' star'+(i>1?'s':''));
+    b.onclick=()=>{ state[field]=i; [...box.children].forEach((c,k)=>c.classList.toggle('on',k<i)); };
+    box.appendChild(b);
+  }
+});
+// pills
+document.querySelectorAll('.pills').forEach(box=>{
+  box.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
+    box.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+    p.classList.add('on'); state[box.dataset.field]=p.textContent;
+  });
+});
+// vibes
+document.querySelectorAll('.vibes').forEach(box=>{
+  box.querySelectorAll('.vibe').forEach(v=>v.onclick=()=>{
+    box.querySelectorAll('.vibe').forEach(x=>x.classList.remove('on'));
+    v.classList.add('on'); state[box.dataset.field]=v.dataset.v;
+  });
+});
+
+$('#f').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const err=$('#err'); err.textContent='';
+  if($('input[name=website]').value) return; // bot trap
+  if(!state.overall){ err.textContent='Please give at least an overall star rating.'; return; }
+
+  const data = {
+    name: $('#name').value.trim() || 'Anonymous',
+    role: state.role||'', clarity: state.clarity||'', depth: state.depth||'',
+    demo: state.demo||'', overall: state.overall, vibe: state.vibe||'',
+    liked: $('#liked').value.trim(), improve: $('#improve').value.trim(), question: $('#question').value.trim()
+  };
+
+  const btn=$('#go'); btn.disabled=true; btn.textContent='Sending...';
+  try{
+    if(ENDPOINT){
+      await fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:new URLSearchParams(data)});
+    } else {
+      console.warn('ENDPOINT not set: saving locally only.', data);
+      const old = JSON.parse(localStorage.getItem('mips32_feedback')||'[]');
+      old.push(data); localStorage.setItem('mips32_feedback', JSON.stringify(old));
+    }
+    $('#f').style.display='none'; $('.pipe').style.display='none';
+    $('#thanks').style.display='block'; window.scrollTo({top:0,behavior:'smooth'});
+  }catch(x){
+    err.textContent='Could not send right now. Please check your connection and try again.';
+    btn.disabled=false; btn.textContent='Send my feedback';
+  }
+});
+</script>
+</body>
+</html>
